@@ -69,6 +69,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <list>
 #include "util/directiontables.h"
 
+bool paused = false;
 /*
 	Text input system
 */
@@ -803,7 +804,7 @@ public:
 		u32 daynight_ratio = m_client->getEnv().getDayNightRatio();
 		float daynight_ratio_f = (float)daynight_ratio / 1000.0;
 		services->setPixelShaderConstant("dayNightRatio", &daynight_ratio_f, 1);
-		
+
 		// Normal map texture layer
 		int layer = 1;
 		// before 1.8 there isn't a "integer interface", only float
@@ -1458,9 +1459,13 @@ void the_game(
 
 	for(;;)
 	{
-		if(device->run() == false || kill == true)
+			if(device->run() == false || kill == true)
 			break;
 
+			//reduce fps when paused
+			if (paused)
+				device->sleep(200);
+		
 		// Time of frame without fps limit
 		float busytime;
 		u32 busytime_u32;
@@ -1994,7 +1999,7 @@ void the_game(
 				statustext_time = 0;
 			}
 		}
-
+	
 		// Item selection with mouse wheel
 		u16 new_playeritem = client.getPlayerItem();
 		{
@@ -2413,7 +2418,7 @@ void the_game(
 				}
 			}
 		}
-		
+
 		//TimeTaker //timer2("//timer2");
 
 		/*
@@ -2847,7 +2852,8 @@ void the_game(
 
 		input->resetLeftReleased();
 		input->resetRightReleased();
-		
+
+		if (!paused) {
 		/*
 			Calculate stuff for drawing
 		*/
@@ -3147,6 +3153,8 @@ void the_game(
 		/*
 			Drawing begins
 		*/
+		}
+		video::SColor skycolor = sky->getSkyColor();
 
 		TimeTaker tt_draw("mainloop: draw");
 		
@@ -3157,6 +3165,7 @@ void the_game(
 			driver->beginScene(true, true, skycolor);
 			beginscenetime = timer.stop(true);
 		}
+		
 		
 		//timer3.stop();
 	
@@ -3252,6 +3261,8 @@ void the_game(
 
 		driver->setTransform(video::ETS_WORLD, core::IdentityMatrix);
 
+		if (!paused) {
+
 		if (show_hud)
 			hud.drawSelectionBoxes(hilightboxes);
 		/*
@@ -3327,7 +3338,7 @@ void the_game(
 		*/
 		if (show_hud)
 			hud.drawLuaElements();
-
+		}
 		/*
 			Draw gui
 		*/
@@ -3349,20 +3360,24 @@ void the_game(
 		/*
 			End of drawing
 		*/
+		if (!paused) {
+			static s16 lastFPS = 0;
+			//u16 fps = driver->getFPS();
+			u16 fps = (1.0/dtime_avg1);
 
-		static s16 lastFPS = 0;
-		//u16 fps = driver->getFPS();
-		u16 fps = (1.0/dtime_avg1);
+			if (lastFPS != fps)
+			{
+				core::stringw str = L"Minetest [";
+				str += driver->getName();
+				str += "] FPS=";
+				str += fps;
 
-		if (lastFPS != fps)
-		{
-			core::stringw str = L"Minetest [";
-			str += driver->getName();
-			str += "] FPS=";
-			str += fps;
-
+				device->setWindowCaption(str.c_str());
+				lastFPS = fps;
+			}
+		} else {
+			core::stringw str = L"Minetest [paused]";
 			device->setWindowCaption(str.c_str());
-			lastFPS = fps;
 		}
 
 		/*

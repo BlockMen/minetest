@@ -30,6 +30,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <IGUIFont.h>
 #include "gettext.h"
 #include "util/string.h"
+#include "settings.h"
+#if USE_FREETYPE
+#include "xCGUITTFont.h"
+#endif
+
+extern bool paused;
 
 GUIPauseMenu::GUIPauseMenu(gui::IGUIEnvironment* env,
 		gui::IGUIElement* parent, s32 id,
@@ -88,6 +94,8 @@ void GUIPauseMenu::removeChildren()
 
 void GUIPauseMenu::regenerateGui(v2u32 screensize)
 {
+	if(m_simple_singleplayer_mode)
+		paused = true;
 	/*
 		Remove stuff
 	*/
@@ -113,58 +121,57 @@ void GUIPauseMenu::regenerateGui(v2u32 screensize)
 	*/
 	const s32 btn_height = 30;
 	const s32 btn_gap = 20;
-	const s32 btn_num = m_simple_singleplayer_mode ? 4 : 5;
-	s32 btn_y = size.Y/2-((btn_num*btn_height+(btn_num-1)*btn_gap))/2;
+	const s32 btn_num = 4;
+	s32 btn_y = size.Y/2-((btn_num*btn_height+(btn_num-1)*btn_gap))/2-30;
+	btn_y += btn_height + btn_gap;
 	changeCtype("");
 	{
-		core::rect<s32> rect(0, 0, 140, btn_height);
-		rect = rect + v2s32(size.X/2-140/2, btn_y);
+		core::rect<s32> rect(0, 0, 290, btn_height*1.3);
+		rect = rect + v2s32(size.X/2-290/2, btn_y);
 		wchar_t* text = wgettext("Continue");
-		Environment->addButton(rect, this, 256,
-			text);
+		Environment->addButton(rect, this, 256,	text);
 		delete[] text;
 	}
-	btn_y += btn_height + btn_gap;
+	btn_y += btn_height + btn_gap*1.3;
+	u32 btn_w = 290;
+	u32 btn_off = btn_w/2;
 	if(!m_simple_singleplayer_mode)
 	{
+		btn_w = 140;
+		btn_off = 145;
 		{
 			core::rect<s32> rect(0, 0, 140, btn_height);
-			rect = rect + v2s32(size.X/2-140/2, btn_y);
+			rect = rect + v2s32(size.X/2+5, btn_y);
 			wchar_t* text = wgettext("Change Password");
-			Environment->addButton(rect, this, 261,
-				text);
+			Environment->addButton(rect, this, 261,	text);
 			delete[] text;
 		}
-		btn_y += btn_height + btn_gap;
 	}
 	{
-		core::rect<s32> rect(0, 0, 140, btn_height);
-		rect = rect + v2s32(size.X/2-140/2, btn_y);
-		wchar_t* text = wgettext("Sound Volume");
-		Environment->addButton(rect, this, 262,
-			text);
+		core::rect<s32> rect(0, 0, btn_w, btn_height);
+		rect = rect + v2s32(size.X/2-btn_off, btn_y);
+		wchar_t* text = wgettext("Settings");
+		Environment->addButton(rect, this, 262, text);
 		delete[] text;
 	}
 	btn_y += btn_height + btn_gap;
 	{
 		core::rect<s32> rect(0, 0, 140, btn_height);
-		rect = rect + v2s32(size.X/2-140/2, btn_y);
+		rect = rect + v2s32(size.X/2-145, btn_y);
 		wchar_t* text = wgettext("Exit to Menu");
-		Environment->addButton(rect, this, 260,
-			text);
+		Environment->addButton(rect, this, 260,	text);
 		delete[] text;
 	}
-	btn_y += btn_height + btn_gap;
 	{
 		core::rect<s32> rect(0, 0, 140, btn_height);
-		rect = rect + v2s32(size.X/2-140/2, btn_y);
+		rect = rect + v2s32(size.X/2+5, btn_y);
 		wchar_t* text = wgettext("Exit to OS");
 		Environment->addButton(rect, this, 257,
 			text);
 		delete[] text;
 	}
 
-	{
+	/*{
 		core::rect<s32> rect(0, 0, 180, 240);
 		rect = rect + v2s32(size.X/2 + 90, size.Y/2-rect.getHeight()/2);
 		wchar_t* text = wgettext("Default Controls:\n"
@@ -199,7 +206,7 @@ void GUIPauseMenu::regenerateGui(v2u32 screensize)
 		os<<"path_user = "<<wrap_rows(porting::path_user, 20)<<"\n";
 	
 		Environment->addStaticText(narrow_to_wide(os.str()).c_str(), rect, false, true, this, 259);
-	}
+	}*/
 	changeCtype("C");
 }
 
@@ -209,11 +216,34 @@ void GUIPauseMenu::drawMenu()
 	if (!skin)
 		return;
 	video::IVideoDriver* driver = Environment->getVideoDriver();
-	
+
 	video::SColor bgcolor(140,0,0,0);
-	driver->draw2DRectangle(bgcolor, AbsoluteRect, &AbsoluteClippingRect);
+	v2u32 screenSize = driver->getScreenSize();
+	core::rect<s32> allbg(0, 0, screenSize.X ,	screenSize.Y);
+
+	driver->draw2DRectangle(bgcolor, allbg, &allbg);
 
 	gui::IGUIElement::draw();
+
+	std::string font_path = g_settings->get("font_path");
+	gui::IGUIFont *font;
+	bool use_freetype = g_settings->getBool("freetype");
+	#if USE_FREETYPE
+	if (use_freetype) {
+		u16 font_size = g_settings->getU16("font_size");
+		font_size *= 2;
+		font = gui::CGUITTFont::createTTFont(Environment, font_path.c_str(), font_size);
+	} else {
+		font = Environment->getFont(font_path.c_str());
+	}
+	#else
+		font = guienv->getFont(font_path.c_str());
+	#endif
+	
+	irr::core::dimension2d<u32> textsize = font->getDimension(L"Pause Menu");
+	font->draw(L"Pause Menu",core::rect<s32>((driver->getScreenSize().Width - textsize.Width)/2,driver->getScreenSize().Height/3-20,textsize.Width,textsize.Height),video::SColor(255,255,255,255),false,false);
+
+	delete[] font;
 }
 
 bool GUIPauseMenu::OnEvent(const SEvent& event)
@@ -225,11 +255,13 @@ bool GUIPauseMenu::OnEvent(const SEvent& event)
 		{
 			if(event.KeyInput.Key==KEY_ESCAPE)
 			{
+				paused = false;
 				quitMenu();
 				return true;
 			}
 			else if(event.KeyInput.Key==KEY_RETURN)
 			{
+				paused = false;
 				quitMenu();
 				return true;
 			}
@@ -253,23 +285,28 @@ bool GUIPauseMenu::OnEvent(const SEvent& event)
 			switch(event.GUIEvent.Caller->getID())
 			{
 			case 256: // continue
+				paused = false;
 				quitMenu();
 				// ALWAYS return immediately after quitMenu()
 				return true;
 			case 261:
+				paused = false;
 				quitMenu();
 				m_gamecallback->changePassword();
 				return true;
 			case 262:
+				paused = false;
 				quitMenu();
 				m_gamecallback->changeVolume();
 				return true;
 			case 260: // disconnect
 				m_gamecallback->disconnect();
+				paused = false;
 				quitMenu();
 				return true;
 			case 257: // exit
 				m_gamecallback->exitToOS();
+				paused = false;
 				quitMenu();
 				return true;
 			}

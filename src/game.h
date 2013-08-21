@@ -25,6 +25,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "keycode.h"
 #include <list>
 
+extern bool paused;
+
 class KeyList : protected std::list<KeyPress>
 {
 	typedef std::list<KeyPress> super;

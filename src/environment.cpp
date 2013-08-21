@@ -43,6 +43,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "emerge.h"
 #include "util/serialize.h"
 
+extern bool paused;
+
 #define PP(x) "("<<(x).X<<","<<(x).Y<<","<<(x).Z<<")"
 
 Environment::Environment():
@@ -1032,7 +1034,8 @@ void ServerEnvironment::step(float dtime)
 	//TimeTaker timer("ServerEnv step");
 
 	/* Step time of day */
-	stepTimeOfDay(dtime);
+	if (!paused)
+		stepTimeOfDay(dtime);
 
 	// Update this one
 	// NOTE: This is kind of funny on a singleplayer game, but doesn't
@@ -2032,7 +2035,8 @@ void ClientEnvironment::step(float dtime)
 	DSTACK(__FUNCTION_NAME);
 
 	/* Step time of day */
-	stepTimeOfDay(dtime);
+	if (!paused)
+		stepTimeOfDay(dtime);
 
 	// Get some settings
 	bool fly_allowed = m_gamedef->checkLocalPrivilege("fly");

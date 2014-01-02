@@ -45,6 +45,7 @@ extern NoiseParams nparams_v6_def_apple_trees;
 struct MapgenV6Params : public MapgenParams {
 	float freq_desert;
 	float freq_beach;
+	float jungle_humidity;
 	NoiseParams np_terrain_base;
 	NoiseParams np_terrain_higher;
 	NoiseParams np_steepness;
@@ -60,6 +61,7 @@ struct MapgenV6Params : public MapgenParams {
 	MapgenV6Params() {
 		freq_desert       = 0.45;
 		freq_beach        = 0.15;
+		jungle_humidity   = 0.75;
 		np_terrain_base   = nparams_v6_def_terrain_base;
 		np_terrain_higher = nparams_v6_def_terrain_higher;
 		np_steepness      = nparams_v6_def_steepness;
@@ -70,7 +72,7 @@ struct MapgenV6Params : public MapgenParams {
 		np_cave           = nparams_v6_def_cave;
 		np_humidity       = nparams_v6_def_humidity;
 		np_trees          = nparams_v6_def_trees;
-		np_apple_trees    = nparams_v6_def_apple_trees;
+		np_apple_trees	  = nparams_v6_def_apple_trees;
 	}
 	
 	~MapgenV6Params() {}
@@ -107,6 +109,7 @@ public:
 	NoiseParams *np_apple_trees;
 	float freq_desert;
 	float freq_beach;
+	float jungle_humidity;
 
 	content_t c_stone;
 	content_t c_dirt;

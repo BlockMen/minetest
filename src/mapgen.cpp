@@ -1129,6 +1129,7 @@ void Mapgen::calcLightingOld(v3s16 nmin, v3s16 nmax) {
 bool MapgenV6Params::readParams(Settings *settings) {
 	freq_desert = settings->getFloat("mgv6_freq_desert");
 	freq_beach  = settings->getFloat("mgv6_freq_beach");
+	jungle_humidity = settings->getFloat("mgv6_jungle_humidity");
 
 	bool success =
 		settings->getNoiseParams("mgv6_np_terrain_base",   np_terrain_base)   &&
@@ -1149,6 +1150,7 @@ bool MapgenV6Params::readParams(Settings *settings) {
 void MapgenV6Params::writeParams(Settings *settings) {
 	settings->setFloat("mgv6_freq_desert", freq_desert);
 	settings->setFloat("mgv6_freq_beach",  freq_beach);
+	settings->setFloat("mgv6_jungle_humidity",  jungle_humidity);
 
 	settings->setNoiseParams("mgv6_np_terrain_base",   np_terrain_base);
 	settings->setNoiseParams("mgv6_np_terrain_higher", np_terrain_higher);

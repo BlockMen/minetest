@@ -252,6 +252,7 @@ void set_default_settings(Settings *settings)
 	settings->setDefault("mg_flags", "trees, caves, v6_biome_blend");
 	settings->setDefault("mgv6_freq_desert", "0.45");
 	settings->setDefault("mgv6_freq_beach", "0.15");
+	settings->setDefault("mgv6_jungle_humidity", "0.75");
 
 	settings->setDefault("mgv6_np_terrain_base",   "-4, 20, (250, 250, 250), 82341, 5, 0.6");
 	settings->setDefault("mgv6_np_terrain_higher", "20, 16, (500, 500, 500), 85039, 5, 0.6");

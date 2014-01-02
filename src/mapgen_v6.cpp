@@ -78,6 +78,7 @@ MapgenV6::MapgenV6(int mapgenid, MapgenV6Params *params, EmergeManager *emerge) 
 
 	this->freq_desert = params->freq_desert;
 	this->freq_beach  = params->freq_beach;
+	this->jungle_humidity = params->jungle_humidity;
 
 	this->ystride = csize.X; //////fix this
 	
@@ -867,7 +868,7 @@ void MapgenV6::placeTreesAndJungleGrass() {
 		bool is_jungle = false;
 		if (flags & MGV6_JUNGLES) {
 			humidity = getHumidity(p2d_center);
-			if (humidity > 0.75) {
+			if (humidity > jungle_humidity) {
 				is_jungle = true;
 				tree_count *= 4;
 			}

@@ -41,7 +41,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "util/mathconstants.h"
 #include "map.h"
 #include "main.h" // g_settings
-#include "game.h" //CAMERA_MODES
+#include "game.h" // CameraModes
 #include <IMeshManipulator.h>
 #include <IAnimatedMeshSceneNode.h>
 #include <IBoneSceneNode.h>
@@ -1079,12 +1079,13 @@ public:
 	
 	void step(float dtime, ClientEnvironment *env)
 	{
-		//start player animation hack
+		// Handel model of local player instantly to prevent lags
 		if(m_is_local_player) {
 			LocalPlayer *player = m_env->getLocalPlayer();
 
-			if (player->camera_mode > FIRST) {
+			if (player->camera_mode > CAMERA_MODE_FIRST) {
 				int old_anim = player->last_animation;
+				float old_anim_speed = player->last_animation_speed;
 				m_is_visible = true;
 				m_position = player->getPosition() + v3f(0,BS,0);
 				m_velocity = v3f(0,0,0);
@@ -1097,40 +1098,40 @@ public:
 				if(controls.up || controls.down || controls.left || controls.right)
 					walking = true;
 
-				m_animation_speed = 30;
-
+				m_animation_speed = player->local_animation_speed;
 				if(controls.sneak && walking)
-					m_animation_speed = 15;
+					m_animation_speed = player->local_animation_speed/2;
+
+				player->last_animation_speed = m_animation_speed;
 
 				if(walking && (controls.LMB || controls.RMB)) {
-					m_animation_range = v2f(200, 219);
+					m_animation_range = player->local_animations[3];
 					player->last_animation = WD_ANIM;
 				} else if(walking) {
-					m_animation_range = v2f(168, 187);
+					m_animation_range = player->local_animations[1];
 					player->last_animation = WALK_ANIM;
 				} else if(controls.LMB || controls.RMB) {
-					m_animation_range = v2f(189, 198);
+					m_animation_range = player->local_animations[2];
 					player->last_animation = DIG_ANIM;
 				}
 
-				//reset animation when no input detected
+				// reset animation when no input detected
 				if (!walking && !controls.LMB && !controls.RMB) {
 					player->last_animation = NO_ANIM;
 					if (old_anim != NO_ANIM) {
-						m_animation_range = v2f(0, 79);
+						m_animation_range = player->local_animations[0];
 						updateAnimation();
 					}
 				}
 
-				// Update local player animation instantly to prevent lags
-				if (player->last_animation != old_anim && player->last_animation != NO_ANIM)
+				// Update local player animations
+				if ((player->last_animation != old_anim && player->last_animation != NO_ANIM) || m_animation_speed != old_anim_speed)
 					updateAnimation();
 
 			} else {
 				m_is_visible = false;
 			}
         }
-		//end player animation hack
 
 		if(m_visuals_expired && m_smgr && m_irr){
 			m_visuals_expired = false;
@@ -1768,12 +1769,23 @@ public:
 		}
 		else if(cmd == GENERIC_CMD_SET_ANIMATION)
 		{
-			LocalPlayer *player = m_env->getLocalPlayer();
-			if(!m_is_local_player || player->last_animation == NO_ANIM) {
+			if (!m_is_local_player) {				
 				m_animation_range = readV2F1000(is);
 				m_animation_speed = readF1000(is);
 				m_animation_blend = readF1000(is);
-				if(!m_is_local_player || (m_animation_range.X != 200 && m_animation_range.X != 168 && m_animation_range.X != 189)) // *TODO* values from registered animations /walking, punching, both
+				updateAnimation();
+			} else {
+				LocalPlayer *player = m_env->getLocalPlayer();
+				if(player->last_animation == NO_ANIM) {
+					m_animation_range = readV2F1000(is);
+					m_animation_speed = readF1000(is);
+					m_animation_blend = readF1000(is);
+				}
+				// update animation only if object is not player
+				// or the received animation is not registered
+				if(m_animation_range.X != player->local_animations[1].X &&
+					m_animation_range.X != player->local_animations[2].X &&
+					m_animation_range.X != player->local_animations[3].X)
 					updateAnimation();
 			}
 		}

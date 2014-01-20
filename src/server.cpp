@@ -3384,6 +3384,24 @@ void Server::SendMovePlayer(u16 peer_id)
 	m_clients.send(peer_id, 0, data, true);
 }
 
+void Server::SendLocalPlayerAnimations(u16 peer_id, v2f animation_frames[4], f32 animation_speed)
+{
+	std::ostringstream os(std::ios_base::binary);
+
+	writeU16(os, TOCLIENT_LOCAL_PLAYER_ANIMATIONS);
+	writeV2F1000(os, animation_frames[0]);
+	writeV2F1000(os, animation_frames[1]);
+	writeV2F1000(os, animation_frames[2]);
+	writeV2F1000(os, animation_frames[3]);
+	writeF1000(os, animation_speed);
+
+	// Make data buffer
+	std::string s = os.str();
+	SharedBuffer<u8> data((u8 *)s.c_str(), s.size());
+	// Send as reliable
+	m_clients.send(peer_id, 0, data, true);
+}
+
 void Server::SendPlayerPrivileges(u16 peer_id)
 {
 	Player *player = m_env->getPlayer(peer_id);
@@ -4476,6 +4494,15 @@ void Server::hudSetHotbarSelectedImage(Player *player, std::string name) {
 		return;
 
 	SendHUDSetParam(player->peer_id, HUD_PARAM_HOTBAR_SELECTED_IMAGE, name);
+}
+
+bool Server::setLocalPlayerAnimations(Player *player, v2f animation_frames[4], f32 frame_speed)
+{
+	if (!player)
+		return false;
+
+	SendLocalPlayerAnimations(player->peer_id, animation_frames, frame_speed);
+	return true;
 }
 
 bool Server::setSky(Player *player, const video::SColor &bgcolor,

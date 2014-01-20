@@ -64,6 +64,7 @@ public:
 	float camera_impact;
 	int camera_mode;
 	int last_animation;
+	float last_animation_speed;
 
 	std::string hotbar_image;
 	std::string hotbar_selected_image;

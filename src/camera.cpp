@@ -41,7 +41,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define CAMERA_OFFSET_STEP 200
 
 #include "nodedef.h"
-#include "game.h" // CameraModes
 
 Camera::Camera(scene::ISceneManager* smgr, MapDrawControl& draw_control,
 		IGameDef *gamedef):

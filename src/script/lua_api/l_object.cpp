@@ -406,7 +406,7 @@ int ObjectRef::l_set_animation(lua_State *L)
 	return 0;
 }
 
-// set_local_animation(self, {stand/ilde}, {walk}, {dig}, {walk+dig}, frame_speed)
+// set_local_animation(self, {stand/idle}, {walk}, {dig}, {walk+dig}, frame_speed)
 int ObjectRef::l_set_local_animation(lua_State *L)
 {
 	//NO_MAP_LOCK_REQUIRED;
@@ -444,9 +444,9 @@ int ObjectRef::l_set_eye_offset(lua_State *L)
 	v3f offset_third = v3f(0, 0, 0);
 	
 	if(!lua_isnil(L, 2))
-			offset_first = read_v3f(L, 2);
+		offset_first = read_v3f(L, 2);
 	if(!lua_isnil(L, 3))
-			offset_third = read_v3f(L, 3);
+		offset_third = read_v3f(L, 3);
 
 	// Prevent abuse of offset values (keep player always visible)
 	offset_third.X = rangelim(offset_third.X,-10,10);
@@ -454,7 +454,7 @@ int ObjectRef::l_set_eye_offset(lua_State *L)
 	/* TODO: if possible: improve the camera colision detetion to allow Y <= -1.5) */
 	offset_third.Y = rangelim(offset_third.Y,-10,15); //1.5*BS
 
-		if (!getServer(L)->setPlayerEyeOffset(player, offset_first, offset_third))
+	if (!getServer(L)->setPlayerEyeOffset(player, offset_first, offset_third))
 		return 0;
 
 	lua_pushboolean(L, true);

@@ -234,6 +234,9 @@ private:
 	// set_local_animation(self, {stand/ilde}, {walk}, {dig}, {walk+dig}, frame_speed)
 	static int l_set_local_animation(lua_State *L);
 
+	// set_eye_offset(self, v3f first pv, v3f third pv)
+	static int l_set_eye_offset(lua_State *L);
+
 public:
 	ObjectRef(ServerActiveObject *object);
 

@@ -63,6 +63,9 @@ public:
 
 	float camera_impact;
 	int camera_mode;
+	v3f eye_offset_first;
+	v3f eye_offset_third;
+
 	int last_animation;
 	float last_animation_speed;
 
